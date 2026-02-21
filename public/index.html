@@ -1,0 +1,713 @@
+!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlacementPro — Student Registration</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --green: #00f5a0;
+            --green-dim: #00c97d;
+            --dark: #050a0f;
+            --card-bg: rgba(255,255,255,0.03);
+            --border: rgba(255,255,255,0.08);
+            --text: #e8f0fe;
+            --muted: #6b7f99;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            min-height: 100vh;
+            background: var(--dark);
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text);
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Ambient background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 10% 0%, rgba(0,245,160,0.08) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 50% at 90% 100%, rgba(0,120,255,0.06) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Grid overlay */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── NAV ── */
+        nav {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 18px 40px;
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            background: rgba(5,10,15,0.7);
+        }
+
+        nav .logo {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: var(--green);
+            letter-spacing: -0.5px;
+            margin-right: auto;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: var(--muted);
+            font-size: 0.82rem;
+            font-weight: 500;
+            padding: 7px 16px;
+            border-radius: 20px;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+
+        nav a:hover { color: var(--text); border-color: var(--border); }
+        nav a.active { color: var(--green); border-color: rgba(0,245,160,0.25); background: rgba(0,245,160,0.05); }
+
+        /* ── MAIN LAYOUT ── */
+        main {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+        }
+
+        /* ── LEFT PANEL ── */
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 120px 60px 60px 80px;
+            position: relative;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--green);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 24px;
+            opacity: 0;
+            animation: fadeUp 0.6s 0.1s forwards;
+        }
+
+        .eyebrow::before {
+            content: '';
+            width: 24px; height: 1px;
+            background: var(--green);
+        }
+
+        h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(2.8rem, 4vw, 3.8rem);
+            font-weight: 800;
+            line-height: 1.05;
+            letter-spacing: -2px;
+            color: #fff;
+            margin-bottom: 24px;
+            opacity: 0;
+            animation: fadeUp 0.6s 0.2s forwards;
+        }
+
+        h1 .accent {
+            background: linear-gradient(135deg, var(--green), #00c8ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            color: var(--muted);
+            line-height: 1.7;
+            max-width: 380px;
+            margin-bottom: 48px;
+            opacity: 0;
+            animation: fadeUp 0.6s 0.3s forwards;
+        }
+
+        .stats-row {
+            display: flex;
+            gap: 32px;
+            opacity: 0;
+            animation: fadeUp 0.6s 0.4s forwards;
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .stat-num {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .stat-num span { color: var(--green); }
+
+        .stat-label {
+            font-size: 0.72rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .divider-v {
+            width: 1px;
+            background: var(--border);
+            align-self: stretch;
+        }
+
+        /* Floating tag */
+        .float-tag {
+            position: absolute;
+            bottom: 80px;
+            left: 80px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0,245,160,0.06);
+            border: 1px solid rgba(0,245,160,0.15);
+            border-radius: 50px;
+            padding: 10px 18px;
+            font-size: 0.78rem;
+            color: var(--green);
+            opacity: 0;
+            animation: fadeUp 0.6s 0.6s forwards;
+        }
+
+        .pulse-dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 0 0 rgba(0,245,160,0.5);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(0,245,160,0.5); }
+            50% { box-shadow: 0 0 0 6px rgba(0,245,160,0); }
+        }
+
+        /* ── RIGHT PANEL ── */
+        .right-panel {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 120px 80px 60px 40px;
+        }
+
+        .form-card {
+            width: 100%;
+            max-width: 440px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 40px;
+            backdrop-filter: blur(30px);
+            position: relative;
+            opacity: 0;
+            animation: scaleIn 0.7s 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* Glow corner */
+        .form-card::before {
+            content: '';
+            position: absolute;
+            top: -1px; left: 40px; right: 40px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--green), transparent);
+            border-radius: 50%;
+        }
+
+        .form-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+
+        .form-subtitle {
+            font-size: 0.82rem;
+            color: var(--muted);
+            margin-bottom: 32px;
+        }
+
+        /* Step indicator */
+        .steps {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 28px;
+        }
+
+        .step-bar {
+            height: 3px;
+            flex: 1;
+            border-radius: 10px;
+            background: var(--border);
+            transition: background 0.4s;
+        }
+
+        .step-bar.active { background: var(--green); }
+
+        /* Fields */
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .field.row {
+            flex-direction: row;
+            gap: 14px;
+        }
+
+        .field.row > * { flex: 1; }
+
+        label {
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+
+        .input-wrap i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+            font-size: 0.85rem;
+            pointer-events: none;
+            transition: color 0.2s;
+        }
+
+        input, select {
+            width: 100%;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            padding: 12px 14px 12px 38px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+            -webkit-appearance: none;
+        }
+
+        select { padding-left: 38px; cursor: pointer; }
+        select option { background: #0d1a24; }
+
+        input:focus, select:focus {
+            border-color: rgba(0,245,160,0.4);
+            background: rgba(0,245,160,0.04);
+            box-shadow: 0 0 0 3px rgba(0,245,160,0.08);
+        }
+
+        input:focus + i, select:focus + i,
+        .input-wrap:has(input:focus) i,
+        .input-wrap:has(select:focus) i {
+            color: var(--green);
+        }
+
+        input::placeholder { color: rgba(107,127,153,0.6); }
+
+        /* Submit button */
+        .submit-btn {
+            width: 100%;
+            height: 52px;
+            background: linear-gradient(135deg, var(--green) 0%, var(--green-dim) 100%);
+            border: none;
+            border-radius: 12px;
+            color: #030a07;
+            font-family: 'Syne', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 8px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.15s, box-shadow 0.2s;
+            letter-spacing: 0.3px;
+        }
+
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .submit-btn:hover::before { left: 100%; }
+        .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 30px rgba(0,245,160,0.3); }
+        .submit-btn:active { transform: translateY(0); }
+
+        /* Loader */
+        .loader-state {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            padding: 24px 0 8px;
+        }
+
+        .orbit {
+            width: 48px; height: 48px;
+            border-radius: 50%;
+            border: 2px solid rgba(0,245,160,0.15);
+            border-top-color: var(--green);
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .loader-text {
+            font-size: 0.82rem;
+            color: var(--muted);
+        }
+
+        /* Success overlay */
+        .success-overlay {
+            display: none;
+            position: absolute;
+            inset: 0;
+            border-radius: 24px;
+            background: rgba(5,10,15,0.95);
+            backdrop-filter: blur(10px);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            z-index: 10;
+        }
+
+        .success-icon {
+            width: 64px; height: 64px;
+            border-radius: 50%;
+            background: rgba(0,245,160,0.1);
+            border: 1px solid rgba(0,245,160,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            color: var(--green);
+            animation: popIn 0.5s cubic-bezier(0.16,1,0.3,1);
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .success-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .success-sub {
+            font-size: 0.82rem;
+            color: var(--muted);
+        }
+
+        .link-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 4px;
+            font-size: 0.78rem;
+            color: var(--muted);
+        }
+
+        .link-row a { color: var(--green); text-decoration: none; }
+        .link-row a:hover { text-decoration: underline; }
+
+        /* Animations */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            main { grid-template-columns: 1fr; }
+            .left-panel { padding: 100px 30px 30px; text-align: center; align-items: center; }
+            .subtitle { text-align: center; }
+            .stats-row { justify-content: center; }
+            .float-tag { position: static; margin-top: 32px; }
+            .right-panel { padding: 0 20px 60px; }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <span class="logo">◈ PlacementPro</span>
+    <a href="index.html" class="active">Register</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="student.html">Student Portal</a>
+    <a href="alumni.html">Alumni Hub</a>
+</nav>
+
+<main>
+    <!-- LEFT PANEL -->
+    <div class="left-panel">
+        <span class="eyebrow">Career Launchpad</span>
+
+        <h1>Your dream<br>job starts<br><span class="accent">right here.</span></h1>
+
+        <p class="subtitle">
+            Build your profile, get matched with top recruiters, and land offers that match your ambition — all in one place.
+        </p>
+
+        <div class="stats-row">
+            <div class="stat">
+                <div class="stat-num">1.2<span>k+</span></div>
+                <div class="stat-label">Students Placed</div>
+            </div>
+            <div class="divider-v"></div>
+            <div class="stat">
+                <div class="stat-num">340<span>+</span></div>
+                <div class="stat-label">Partner Companies</div>
+            </div>
+            <div class="divider-v"></div>
+            <div class="stat">
+                <div class="stat-num">96<span>%</span></div>
+                <div class="stat-label">Placement Rate</div>
+            </div>
+        </div>
+
+        <div class="float-tag">
+            <div class="pulse-dot"></div>
+            247 recruiters active this week
+        </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="right-panel">
+        <div class="form-card" id="formCard">
+
+            <!-- Success overlay -->
+            <div class="success-overlay" id="successOverlay">
+                <div class="success-icon"><i class="fas fa-check"></i></div>
+                <div class="success-title">You're in!</div>
+                <div class="success-sub">Redirecting to your dashboard…</div>
+            </div>
+
+            <div class="form-title">Create your profile</div>
+            <div class="form-subtitle">Takes less than a minute to get started.</div>
+
+            <!-- Progress bars -->
+            <div class="steps">
+                <div class="step-bar active" id="s1"></div>
+                <div class="step-bar" id="s2"></div>
+                <div class="step-bar" id="s3"></div>
+            </div>
+
+            <div class="field-group" id="fieldGroup">
+                <div class="field">
+                    <label>Full Name</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="name" placeholder="Full Name" oninput="updateProgress()">
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label>Student Email</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="email" placeholder="email" oninput="updateProgress()">
+                    </div>
+                </div>
+
+                <div class="field row">
+                    <div class="field">
+                        <label>Branch</label>
+                        <div class="input-wrap">
+                            <i class="fas fa-code-branch"></i>
+                            <select id="branch" onchange="updateProgress()">
+                                <option value="CS">Computer Science</option>
+                                <option value="MCA">MCA</option>
+                                <option value="IT">Information Tech</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label>CGPA</label>
+                        <div class="input-wrap">
+                            <i class="fas fa-star-half-alt"></i>
+                            <input type="number" id="cgpa" placeholder="8.5" step="0.1" min="0" max="10" oninput="updateProgress()">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label>Active Backlogs</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <input type="number" id="backlogs" value="0" min="0">
+                    </div>
+                </div>
+
+                <button class="submit-btn" id="regBtn" onclick="registerStudent()">
+                    <i class="fas fa-rocket"></i> Complete Registration
+                </button>
+
+                <div class="loader-state" id="loader">
+                    <div class="orbit"></div>
+                    <div class="loader-text">Syncing with Central Brain…</div>
+                </div>
+
+                <div class="link-row">
+                    Already registered? <a href="dashboard.html">Go to Dashboard →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    if (localStorage.getItem('isRegistered')) {
+        window.location.replace("dashboard.html");
+    }
+
+    function updateProgress() {
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const cgpa = document.getElementById('cgpa').value;
+
+        const filled = [!!name, !!email, !!cgpa].filter(Boolean).length;
+        document.getElementById('s1').classList.toggle('active', filled >= 1);
+        document.getElementById('s2').classList.toggle('active', filled >= 2);
+        document.getElementById('s3').classList.toggle('active', filled >= 3);
+    }
+
+    async function registerStudent() {
+        const btn = document.getElementById('regBtn');
+        const loader = document.getElementById('loader');
+
+        const studentData = {
+            name: document.getElementById('name').value.trim(),
+            email: document.getElementById('email').value.trim(),
+            branch: document.getElementById('branch').value,
+            cgpa: parseFloat(document.getElementById('cgpa').value),
+            backlogs: parseInt(document.getElementById('backlogs').value) || 0
+        };
+
+        if (!studentData.name || !studentData.email || !studentData.cgpa) {
+            // Shake animation
+            const card = document.getElementById('formCard');
+            card.style.animation = 'shake 0.4s';
+            setTimeout(() => card.style.animation = '', 400);
+            return;
+        }
+
+        btn.style.display = 'none';
+        loader.style.display = 'flex';
+
+        try {
+            const res = await fetch('/api/register-student', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(studentData)
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                localStorage.setItem('isRegistered', 'true');
+                localStorage.setItem('userEmail', studentData.email);
+
+                loader.style.display = 'none';
+                document.getElementById('successOverlay').style.display = 'flex';
+
+                setTimeout(() => window.location.replace("dashboard.html"), 1800);
+            } else {
+                alert("Error: " + (data.error || "Email already registered"));
+                btn.style.display = 'flex';
+                loader.style.display = 'none';
+            }
+        } catch (error) {
+            console.error("Connection failed", error);
+            alert("Server connection failed. Is your Node.js server running?");
+            btn.style.display = 'flex';
+            loader.style.display = 'none';
+        }
+    }
+
+    // Shake keyframe via JS
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes shake {
+            0%,100% { transform: translateX(0); }
+            20% { transform: translateX(-8px); }
+            40% { transform: translateX(8px); }
+            60% { transform: translateX(-5px); }
+            80% { transform: translateX(5px); }
+        }
+    `;
+    document.head.appendChild(style);
+</script>
+</body>
+</html>

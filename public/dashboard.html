@@ -1,0 +1,873 @@
+!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlacementPro — Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --green: #00f5a0;
+            --green-dim: #00c97d;
+            --blue: #4f8eff;
+            --purple: #a78bfa;
+            --amber: #ffb84d;
+            --red: #ff6b6b;
+            --dark: #050a0f;
+            --surface: rgba(255,255,255,0.03);
+            --surface-hover: rgba(255,255,255,0.055);
+            --border: rgba(255,255,255,0.07);
+            --border-light: rgba(255,255,255,0.12);
+            --text: #e8f0fe;
+            --muted: #6b7f99;
+            --muted-light: #8fa3be;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            min-height: 100vh;
+            background: var(--dark);
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text);
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed; inset: 0;
+            background:
+                radial-gradient(ellipse 65% 45% at 5% 0%, rgba(0,245,160,0.07) 0%, transparent 55%),
+                radial-gradient(ellipse 55% 45% at 95% 85%, rgba(79,142,255,0.06) 0%, transparent 55%);
+            pointer-events: none; z-index: 0;
+        }
+
+        body::after {
+            content: '';
+            position: fixed; inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.012) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none; z-index: 0;
+        }
+
+        /* ── NAV ── */
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            display: flex; align-items: center; gap: 6px;
+            padding: 16px 40px;
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            background: rgba(5,10,15,0.8);
+        }
+
+        .nav-logo {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800; font-size: 1rem;
+            color: var(--green); margin-right: auto;
+        }
+
+        nav a {
+            text-decoration: none; color: var(--muted);
+            font-size: 0.8rem; font-weight: 500;
+            padding: 6px 14px; border-radius: 20px;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+
+        nav a:hover { color: var(--text); border-color: var(--border); }
+        nav a.active { color: var(--green); border-color: rgba(0,245,160,0.25); background: rgba(0,245,160,0.05); }
+
+        .nav-logout {
+            display: flex; align-items: center; gap: 6px;
+            color: rgba(255,80,80,0.7) !important; margin-left: 8px;
+        }
+        .nav-logout:hover { color: #ff5050 !important; border-color: rgba(255,80,80,0.3) !important; background: rgba(255,80,80,0.05) !important; }
+
+        /* ── PAGE ── */
+        .page {
+            position: relative; z-index: 1;
+            max-width: 1200px; margin: 0 auto;
+            padding: 100px 30px 60px;
+        }
+
+        /* ── PAGE HEADER ── */
+        .page-header {
+            display: flex; align-items: flex-end; justify-content: space-between;
+            margin-bottom: 32px;
+            opacity: 0; animation: fadeUp 0.6s 0.1s forwards;
+        }
+
+        .eyebrow {
+            display: inline-flex; align-items: center; gap: 8px;
+            font-size: 0.68rem; font-weight: 500;
+            color: var(--green); letter-spacing: 2px;
+            text-transform: uppercase; margin-bottom: 10px;
+        }
+
+        .eyebrow::before { content: ''; width: 20px; height: 1px; background: var(--green); }
+
+        h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 2.4rem; font-weight: 800;
+            letter-spacing: -1.5px; line-height: 1.1; color: #fff;
+        }
+
+        .page-header-left h1 span {
+    background: linear-gradient(135deg, var(--green, #00ff00), #00c8ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+}
+
+        .header-right {
+            display: flex; align-items: center; gap: 10px;
+        }
+
+        .live-badge {
+            display: flex; align-items: center; gap: 7px;
+            background: rgba(0,245,160,0.06);
+            border: 1px solid rgba(0,245,160,0.15);
+            border-radius: 50px; padding: 7px 14px;
+            font-size: 0.73rem; color: var(--green);
+        }
+
+        .pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; flex-shrink: 0; }
+
+        @keyframes pulse {
+            0%,100% { box-shadow: 0 0 0 0 rgba(0,245,160,0.5); }
+            50% { box-shadow: 0 0 0 6px rgba(0,245,160,0); }
+        }
+
+        /* ── KPI ROW ── */
+        .kpi-row {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+            margin-bottom: 24px;
+            opacity: 0; animation: fadeUp 0.6s 0.2s forwards;
+        }
+
+        .kpi {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px; padding: 20px 22px;
+            position: relative; overflow: hidden;
+            transition: border-color 0.2s, background 0.2s;
+            cursor: default;
+        }
+
+        .kpi:hover { border-color: var(--border-light); background: var(--surface-hover); }
+
+        .kpi-top {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .kpi-icon {
+            width: 34px; height: 34px; border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.85rem;
+        }
+
+        .kpi-trend {
+            font-size: 0.68rem; padding: 3px 8px;
+            border-radius: 20px; font-weight: 600;
+        }
+
+        .trend-up { background: rgba(0,245,160,0.1); color: var(--green); }
+        .trend-blue { background: rgba(79,142,255,0.1); color: var(--blue); }
+        .trend-amber { background: rgba(255,184,77,0.1); color: var(--amber); }
+        .trend-purple { background: rgba(167,139,250,0.1); color: var(--purple); }
+
+        .kpi-num {
+            font-family: 'Syne', sans-serif;
+            font-size: 2rem; font-weight: 800; color: #fff; line-height: 1;
+        }
+
+        .kpi-label { font-size: 0.72rem; color: var(--muted); margin-top: 5px; text-transform: uppercase; letter-spacing: 0.8px; }
+
+        .kpi-bar {
+            position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+        }
+
+        /* ── MAIN GRID ── */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1.3fr 1fr;
+            gap: 20px;
+        }
+
+        .span-2 { grid-column: span 2; }
+
+        /* ── CARD ── */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px; padding: 26px;
+            position: relative; overflow: hidden;
+            transition: border-color 0.3s, background 0.3s;
+            opacity: 0;
+        }
+
+        .card:hover { border-color: var(--border-light); background: var(--surface-hover); }
+
+        .card.anim-1 { animation: fadeUp 0.6s 0.3s forwards; }
+        .card.anim-2 { animation: fadeUp 0.6s 0.35s forwards; }
+        .card.anim-3 { animation: fadeUp 0.6s 0.4s forwards; }
+
+        .card-accent {
+            position: absolute; top: 0; left: 26px; right: 26px; height: 1px;
+        }
+
+        .card-header {
+            display: flex; align-items: center; gap: 12px; margin-bottom: 22px;
+        }
+
+        .card-icon {
+            width: 38px; height: 38px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.9rem; flex-shrink: 0;
+        }
+
+        .card-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 1rem; font-weight: 700; color: #fff;
+        }
+
+        .card-desc { font-size: 0.77rem; color: var(--muted); margin-top: 2px; }
+
+        /* ── FORM ── */
+        .field-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px;
+        }
+
+        .field { display: flex; flex-direction: column; gap: 7px; }
+
+        label {
+            font-size: 0.67rem; font-weight: 600;
+            color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px;
+        }
+
+        .input-wrap { position: relative; }
+
+        .input-wrap i {
+            position: absolute; left: 12px; top: 50%;
+            transform: translateY(-50%); color: var(--muted);
+            font-size: 0.78rem; pointer-events: none; transition: color 0.2s;
+        }
+
+        input[type="text"], input[type="number"], input[type="date"] {
+            width: 100%;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.86rem;
+            padding: 10px 12px 10px 34px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+        }
+
+        input[type="date"] { color-scheme: dark; }
+
+        input:focus {
+            border-color: rgba(0,245,160,0.4);
+            background: rgba(0,245,160,0.04);
+            box-shadow: 0 0 0 3px rgba(0,245,160,0.08);
+        }
+
+        .input-wrap:has(input:focus) i { color: var(--green); }
+        input::placeholder { color: rgba(107,127,153,0.5); }
+
+        /* Blue focus for criteria engine */
+        .blue-focus input:focus {
+            border-color: rgba(79,142,255,0.4);
+            background: rgba(79,142,255,0.04);
+            box-shadow: 0 0 0 3px rgba(79,142,255,0.08);
+        }
+
+        .blue-focus .input-wrap:has(input:focus) i { color: var(--blue); }
+
+        /* ── BUTTONS ── */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 11px 22px; border: none; border-radius: 10px;
+            font-family: 'Syne', sans-serif; font-size: 0.82rem; font-weight: 700;
+            cursor: pointer; transition: all 0.2s;
+            position: relative; overflow: hidden; white-space: nowrap;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before { left: 100%; }
+        .btn:hover { transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .btn-green {
+            background: linear-gradient(135deg, var(--green), var(--green-dim));
+            color: #030a07;
+            box-shadow: 0 4px 20px rgba(0,245,160,0.2);
+        }
+
+        .btn-green:hover { box-shadow: 0 6px 28px rgba(0,245,160,0.35); }
+
+        .btn-blue {
+            background: linear-gradient(135deg, var(--blue), #2563eb);
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(79,142,255,0.2);
+        }
+
+        .btn-blue:hover { box-shadow: 0 6px 28px rgba(79,142,255,0.35); }
+
+        /* ── RESULTS TABLE ── */
+        .results-wrap {
+            margin-top: 20px; overflow: hidden;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            display: none;
+        }
+
+        .results-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 16px;
+            background: rgba(79,142,255,0.06);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .results-title {
+            font-size: 0.75rem; font-weight: 600;
+            color: var(--blue); text-transform: uppercase; letter-spacing: 1px;
+        }
+
+        .results-count {
+            font-size: 0.72rem; color: var(--muted);
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+
+        thead tr { background: rgba(255,255,255,0.02); }
+
+        th {
+            padding: 11px 16px;
+            text-align: left;
+            font-size: 0.67rem; font-weight: 700;
+            color: var(--muted); text-transform: uppercase; letter-spacing: 1px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 12px 16px;
+            font-size: 0.83rem; color: var(--muted-light);
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+
+        tbody tr { transition: background 0.15s; }
+        tbody tr:hover { background: rgba(255,255,255,0.025); }
+        tbody tr:last-child td { border-bottom: none; }
+
+        .cgpa-val {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700; color: var(--green);
+        }
+
+        .badge {
+            font-size: 0.66rem; font-weight: 700;
+            padding: 3px 10px; border-radius: 20px;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+
+        .badge-qualified { background: rgba(0,245,160,0.1); color: var(--green); border: 1px solid rgba(0,245,160,0.2); }
+        .badge-branch { background: rgba(79,142,255,0.1); color: var(--blue); border: 1px solid rgba(79,142,255,0.15); }
+
+        /* ── RECENT DRIVES ── */
+        .drive-list { display: flex; flex-direction: column; gap: 10px; }
+
+        .drive-row {
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 12px;
+            background: rgba(255,255,255,0.025);
+            border: 1px solid var(--border);
+            border-radius: 11px; padding: 12px 16px;
+            transition: all 0.2s;
+        }
+
+        .drive-row:hover { border-color: rgba(0,245,160,0.2); background: rgba(0,245,160,0.03); }
+
+        .drive-company { font-weight: 600; font-size: 0.88rem; color: #fff; }
+        .drive-meta { font-size: 0.73rem; color: var(--muted); margin-top: 3px; }
+
+        .drive-badge {
+            font-size: 0.65rem; font-weight: 700;
+            padding: 4px 10px; border-radius: 20px;
+            text-transform: uppercase; flex-shrink: 0;
+        }
+
+        .drive-badge.active { background: rgba(0,245,160,0.1); color: var(--green); border: 1px solid rgba(0,245,160,0.2); }
+        .drive-badge.upcoming { background: rgba(255,184,77,0.1); color: var(--amber); border: 1px solid rgba(255,184,77,0.2); }
+
+        .empty-drives {
+            text-align: center; padding: 32px 0;
+            color: var(--muted); font-size: 0.82rem;
+        }
+
+        .empty-drives i { font-size: 1.6rem; display: block; margin-bottom: 10px; opacity: 0.3; }
+
+        /* ── FILTER ROW ── */
+        .filter-row {
+            display: flex; gap: 12px; align-items: flex-end;
+        }
+
+        .filter-row .field { flex: 1; }
+
+        /* ── SECTION LABEL ── */
+        .section-tag {
+            font-size: 0.66rem; font-weight: 600;
+            color: var(--muted); text-transform: uppercase;
+            letter-spacing: 1.5px; margin-bottom: 12px;
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        .section-tag::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+        /* ── TOAST ── */
+        .toast {
+            position: fixed; bottom: 30px; right: 30px; z-index: 200;
+            background: rgba(10,18,28,0.95);
+            border: 1px solid rgba(0,245,160,0.3);
+            border-radius: 14px; padding: 14px 20px;
+            display: flex; align-items: center; gap: 12px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            transform: translateY(80px); opacity: 0;
+            transition: all 0.4s cubic-bezier(0.16,1,0.3,1);
+            pointer-events: none;
+        }
+
+        .toast.show { transform: translateY(0); opacity: 1; }
+
+        .toast-icon {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: rgba(0,245,160,0.12);
+            border: 1px solid rgba(0,245,160,0.25);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--green); font-size: 0.8rem; flex-shrink: 0;
+        }
+
+        .toast-title { font-weight: 600; font-size: 0.85rem; color: #fff; }
+        .toast-sub { font-size: 0.73rem; color: var(--muted); }
+
+        /* ── LOADER ── */
+        .mini-loader {
+            display: inline-block; width: 14px; height: 14px;
+            border-radius: 50%;
+            border: 2px solid rgba(0,245,160,0.2);
+            border-top-color: var(--green);
+            animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── ANIMATIONS ── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 900px) {
+            .kpi-row { grid-template-columns: 1fr 1fr; }
+            .main-grid { grid-template-columns: 1fr; }
+            .span-2 { grid-column: span 1; }
+            nav { padding: 14px 20px; }
+            .page { padding: 80px 16px 40px; }
+            .field-grid { grid-template-columns: 1fr; }
+            .filter-row { flex-direction: column; }
+        }
+
+        @media (max-width: 500px) {
+            .kpi-row { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <span class="nav-logo">◈ PlacementPro</span>
+    <a href="dashboard.html" class="active">Dashboard</a>
+    <a href="student.html">Student Portal</a>
+    <a href="alumni.html">Alumni Hub</a>
+    <a href="#" class="nav-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Log Out</a>
+</nav>
+
+<div class="page">
+
+    <!-- HEADER -->
+    <div class="page-header">
+        <div>
+            <div class="eyebrow">Placement Command</div>
+            <h1>Recruitment <span>Dashboard</span></h1>
+        </div>
+        <div class="header-right">
+            <div class="live-badge">
+                <div class="pulse"></div>
+                Live System
+            </div>
+        </div>
+    </div>
+
+    <!-- KPI ROW -->
+    <div class="kpi-row">
+        <div class="kpi">
+            <div class="kpi-top">
+                <div class="kpi-icon" style="background:rgba(0,245,160,0.1); color:var(--green);"><i class="fas fa-broadcast-tower"></i></div>
+                <span class="kpi-trend trend-up">Active</span>
+            </div>
+            <div class="kpi-num" id="kpiDrives">0</div>
+            <div class="kpi-label">Recruitment Drives</div>
+            <div class="kpi-bar" style="background: linear-gradient(90deg, var(--green), transparent);"></div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-top">
+                <div class="kpi-icon" style="background:rgba(79,142,255,0.1); color:var(--blue);"><i class="fas fa-users"></i></div>
+                <span class="kpi-trend trend-blue">Synced</span>
+            </div>
+            <div class="kpi-num" id="kpiStudents">—</div>
+            <div class="kpi-label">Registered Students</div>
+            <div class="kpi-bar" style="background: linear-gradient(90deg, var(--blue), transparent);"></div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-top">
+                <div class="kpi-icon" style="background:rgba(255,184,77,0.1); color:var(--amber);"><i class="fas fa-check-double"></i></div>
+                <span class="kpi-trend trend-amber">Automated</span>
+            </div>
+            <div class="kpi-num" id="kpiEligible">—</div>
+            <div class="kpi-label">Eligible Candidates</div>
+            <div class="kpi-bar" style="background: linear-gradient(90deg, var(--amber), transparent);"></div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-top">
+                <div class="kpi-icon" style="background:rgba(167,139,250,0.1); color:var(--purple);"><i class="fas fa-handshake"></i></div>
+                <span class="kpi-trend trend-purple">Referrals</span>
+            </div>
+            <div class="kpi-num" id="kpiReferrals">—</div>
+            <div class="kpi-label">Alumni Referrals</div>
+            <div class="kpi-bar" style="background: linear-gradient(90deg, var(--purple), transparent);"></div>
+        </div>
+    </div>
+
+    <!-- MAIN GRID -->
+    <div class="main-grid">
+
+        <!-- ── LAUNCH DRIVE ── -->
+        <div class="card anim-1">
+            <div class="card-accent" style="background: linear-gradient(90deg, transparent, var(--green), transparent);"></div>
+            <div class="card-header">
+                <div class="card-icon" style="background:rgba(0,245,160,0.1); color:var(--green);">
+                    <i class="fas fa-rocket"></i>
+                </div>
+                <div>
+                    <div class="card-title">Launch Recruitment Drive</div>
+                    <div class="card-desc">Announce an opening — eligible students are notified automatically.</div>
+                </div>
+            </div>
+
+            <div class="field-grid">
+                <div class="field">
+                    <label>Company Name</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-building"></i>
+                        <input type="text" id="compName" placeholder="e.g. Microsoft">
+                    </div>
+                </div>
+                <div class="field">
+                    <label>Min CGPA</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-star-half-alt"></i>
+                        <input type="number" id="driveCGPA" placeholder="7.5" step="0.1" min="0" max="10">
+                    </div>
+                </div>
+                <div class="field">
+                    <label>Target Branches</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-code-branch"></i>
+                        <input type="text" id="driveBranches" placeholder="CS, MCA, IT">
+                    </div>
+                </div>
+                <div class="field">
+                    <label>Drive Date</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-calendar-alt"></i>
+                        <input type="date" id="driveDate">
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-green" id="driveBtn" onclick="createDrive()" style="width:100%; height:46px;">
+                <i class="fas fa-bullhorn"></i> Announce Drive
+            </button>
+        </div>
+
+        <!-- ── RECENT DRIVES ── -->
+        <div class="card anim-2">
+            <div class="card-accent" style="background: linear-gradient(90deg, transparent, var(--amber), transparent);"></div>
+            <div class="card-header">
+                <div class="card-icon" style="background:rgba(255,184,77,0.1); color:var(--amber);">
+                    <i class="fas fa-list-alt"></i>
+                </div>
+                <div>
+                    <div class="card-title">Active Drives</div>
+                    <div class="card-desc">Currently running recruitment campaigns.</div>
+                </div>
+            </div>
+            <div class="drive-list" id="driveList">
+                <div class="empty-drives">
+                    <i class="fas fa-inbox"></i>
+                    No drives launched yet. Create one to get started.
+                </div>
+            </div>
+        </div>
+
+        <!-- ── CRITERIA ENGINE ── (full width) -->
+        <div class="card span-2 anim-3 blue-focus">
+            <div class="card-accent" style="background: linear-gradient(90deg, transparent, var(--blue), transparent);"></div>
+            <div class="card-header">
+                <div class="card-icon" style="background:rgba(79,142,255,0.1); color:var(--blue);">
+                    <i class="fas fa-sliders-h"></i>
+                </div>
+                <div>
+                    <div class="card-title">Criteria Engine</div>
+                    <div class="card-desc">Query the student database for instant eligibility reporting.</div>
+                </div>
+            </div>
+
+            <div class="filter-row" style="margin-bottom:0;">
+                <div class="field">
+                    <label>Minimum CGPA</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-filter"></i>
+                        <input type="number" id="minCGPA" placeholder="7.0" step="0.1">
+                    </div>
+                </div>
+                <div class="field">
+                    <label>Branches</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-layer-group"></i>
+                        <input type="text" id="branches" placeholder="CS, MCA, IT">
+                    </div>
+                </div>
+                <button class="btn btn-blue" id="filterBtn" onclick="filterStudents()" style="height:42px; padding: 0 28px; flex-shrink:0; align-self:flex-end;">
+                    <i class="fas fa-bolt"></i> Run Analysis
+                </button>
+            </div>
+
+            <!-- Results -->
+            <div class="results-wrap" id="resultsWrap">
+                <div class="results-header">
+                    <div class="results-title"><i class="fas fa-table" style="margin-right:6px;"></i> Eligible Candidates</div>
+                    <div class="results-count" id="resultsCount"></div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Branch</th>
+                            <th>CGPA</th>
+                            <th>Backlogs</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+    <div class="toast-icon"><i class="fas fa-check"></i></div>
+    <div>
+        <div class="toast-title" id="toastTitle">Drive Launched!</div>
+        <div class="toast-sub" id="toastSub">Students have been notified.</div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        if (!localStorage.getItem('isRegistered')) {
+            window.location.replace("index.html");
+        }
+    })();
+
+    // Load KPIs
+    async function loadKPIs() {
+        try {
+            const res = await fetch('/api/eligible-students?minCGPA=0&branches=CS,MCA,IT');
+            if (res.ok) {
+                const data = await res.json();
+                if (data.students) {
+                    document.getElementById('kpiStudents').textContent = data.students.length;
+                    document.getElementById('kpiEligible').textContent = data.students.filter(s => s.cgpa >= 7.5).length;
+                }
+            }
+        } catch(e) {}
+
+        try {
+            const r2 = await fetch('/api/get-referrals');
+            if (r2.ok) {
+                const refs = await r2.json();
+                document.getElementById('kpiReferrals').textContent = refs.length || 0;
+            }
+        } catch(e) {}
+
+        // Local drives count
+        const localDrives = JSON.parse(localStorage.getItem('localDrives') || '[]');
+        document.getElementById('kpiDrives').textContent = localDrives.length;
+        renderDrives(localDrives);
+    }
+
+    loadKPIs();
+
+    function renderDrives(drives) {
+        const list = document.getElementById('driveList');
+        if (!drives.length) {
+            list.innerHTML = `<div class="empty-drives"><i class="fas fa-inbox"></i>No drives launched yet.</div>`;
+            return;
+        }
+        list.innerHTML = drives.slice().reverse().slice(0, 5).map(d => `
+            <div class="drive-row">
+                <div>
+                    <div class="drive-company">${d.companyName}</div>
+                    <div class="drive-meta"><i class="fas fa-calendar-alt" style="margin-right:4px;"></i>${d.date || 'TBD'} &nbsp;·&nbsp; Min CGPA ${d.minCGPA} &nbsp;·&nbsp; <span class="badge badge-branch">${d.branches}</span></div>
+                </div>
+                <div class="drive-badge active">Active</div>
+            </div>`).join('');
+    }
+
+    async function createDrive() {
+        const btn = document.getElementById('driveBtn');
+        const driveData = {
+            companyName: document.getElementById('compName').value.trim(),
+            minCGPA: parseFloat(document.getElementById('driveCGPA').value),
+            branches: document.getElementById('driveBranches').value.trim() || 'CS, MCA, IT',
+            date: document.getElementById('driveDate').value
+        };
+
+        if (!driveData.companyName || !driveData.minCGPA) {
+            shakeField(!driveData.companyName ? 'compName' : 'driveCGPA');
+            return;
+        }
+
+        btn.innerHTML = '<span class="mini-loader"></span> Launching…';
+        btn.disabled = true;
+
+        try {
+            const res = await fetch('/api/create-drive', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(driveData)
+            });
+
+            if (res.ok) {
+                // Save locally too for immediate UI update
+                const drives = JSON.parse(localStorage.getItem('localDrives') || '[]');
+                drives.push(driveData);
+                localStorage.setItem('localDrives', JSON.stringify(drives));
+
+                document.getElementById('kpiDrives').textContent = drives.length;
+                renderDrives(drives);
+
+                ['compName','driveCGPA','driveBranches','driveDate'].forEach(id => document.getElementById(id).value = '');
+                showToast('Drive Launched! 🚀', `${driveData.companyName} drive is now live for students.`);
+            } else {
+                const data = await res.json();
+                alert(data.error || "Failed to create drive.");
+            }
+        } catch(e) {
+            alert("Server connection failed. Is Node.js running?");
+        } finally {
+            btn.innerHTML = '<i class="fas fa-bullhorn"></i> Announce Drive';
+            btn.disabled = false;
+        }
+    }
+
+    async function filterStudents() {
+        const btn = document.getElementById('filterBtn');
+        const cgpa = document.getElementById('minCGPA').value || 0;
+        const branch = document.getElementById('branches').value || "CS,MCA,IT";
+
+        btn.innerHTML = '<span class="mini-loader" style="border-top-color:#fff;"></span> Analyzing…';
+        btn.disabled = true;
+
+        try {
+            const res = await fetch(`/api/eligible-students?minCGPA=${cgpa}&branches=${branch}`);
+            const data = await res.json();
+
+            const wrap = document.getElementById('resultsWrap');
+            const body = document.getElementById('studentBody');
+            const count = document.getElementById('resultsCount');
+
+            if (data.students && data.students.length > 0) {
+                count.textContent = `${data.students.length} student${data.students.length !== 1 ? 's' : ''} found`;
+                body.innerHTML = data.students.map((s, i) => `
+                    <tr style="animation: fadeUp 0.3s ${i * 0.04}s both;">
+                        <td><i class="fas fa-user-graduate" style="color:var(--muted); margin-right:8px; font-size:0.75rem;"></i>${s.name}</td>
+                        <td><span class="badge badge-branch">${s.branch}</span></td>
+                        <td><span class="cgpa-val">${s.cgpa}</span></td>
+                        <td style="color:${s.backlogs > 0 ? 'var(--amber)' : 'var(--muted)'}">${s.backlogs ?? 0}</td>
+                        <td><span class="badge badge-qualified">Qualified</span></td>
+                    </tr>`).join('');
+                wrap.style.display = 'block';
+                document.getElementById('kpiEligible').textContent = data.students.length;
+            } else {
+                count.textContent = '0 students found';
+                body.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:28px; color:var(--muted); font-size:0.82rem;">No students match these parameters.</td></tr>`;
+                wrap.style.display = 'block';
+            }
+        } catch(e) {
+            alert("Server connection failed.");
+        } finally {
+            btn.innerHTML = '<i class="fas fa-bolt"></i> Run Analysis';
+            btn.disabled = false;
+        }
+    }
+
+    function showToast(title, sub) {
+        document.getElementById('toastTitle').textContent = title;
+        document.getElementById('toastSub').textContent = sub;
+        const t = document.getElementById('toast');
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    function shakeField(id) {
+        const el = document.getElementById(id);
+        el.style.animation = 'shake 0.4s';
+        el.style.borderColor = 'rgba(255,80,80,0.5)';
+        setTimeout(() => { el.style.animation = ''; el.style.borderColor = ''; }, 600);
+    }
+
+    function logout() {
+        if (confirm("Clear session and return to registration?")) {
+            localStorage.clear();
+            window.location.replace("index.html");
+        }
+    }
+
+    // Inject shake keyframe
+    const s = document.createElement('style');
+    s.textContent = `@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}`;
+    document.head.appendChild(s);
+</script>
+</body>
+</html>
